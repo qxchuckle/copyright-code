@@ -26,8 +26,8 @@ async function extractAndWriteData(rootPath: string, filesToExtract: vscode.Uri[
 	// 输出的文件名
 	const outPutFileName = 'extractedCode.txt';
 	const outputFilePath = path.join(rootPath, outPutFileName);
-	// 内置的需要排除的文件，应该没人会想提取这些文件吧
-	const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json'];
+	// 内置的需要排除的文件，即使你不选择，它也会被排除
+	const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'];
 	// 创建可写流
 	const outputStream = fs.createWriteStream(outputFilePath);
 	// 写入数据

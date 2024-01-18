@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import * as utils from './utils';
 
 // 选择需要提取的文件的后缀名
@@ -8,6 +9,7 @@ async function selectFileExtensions(rootPath: string, skipDirectories: (string |
 	// 让用户选择需要提取的文件后缀名
 	const selectedExtensions = await vscode.window.showQuickPick(allFileExtensions, {
 		canPickMany: true,
+		title: '选择需要提取的文件的后缀',
 		placeHolder: '请选择需要提取的文件的后缀'
 	});
 	return selectedExtensions || [];
@@ -20,9 +22,25 @@ async function selectExcludeDirs(rootPath: string, skipDirectories: (string | Re
 	// 让用户选择需要排除的目录
 	const selectedDirs = await vscode.window.showQuickPick(allDirectories, {
 		canPickMany: true,
+		title: '选择需要排除的目录',
 		placeHolder: '请选择需要排除的目录'
 	});
 	return selectedDirs || [];
+}
+
+// 选择需要排除的根目录文件
+async function selectedRootPathFiles(rootPath: string): Promise<string[] | undefined> {
+	// 使用VSCode API读取根目录下的所有文件
+	const files = await vscode.workspace.findFiles(new vscode.RelativePattern(rootPath, '*'));
+	// 提取文件名
+	const fileNames = files.map(file => path.basename(file.path));
+	// 让用户选择需要的文件
+	const selectedFiles = await vscode.window.showQuickPick(fileNames, {
+		canPickMany: true,
+		title: '选择需要排除的根目录文件',
+		placeHolder: '请选择需要排除的根目录文件',
+	});
+	return selectedFiles;
 }
 
 // 用户选择匹配规则并获取Pattern
@@ -39,9 +57,11 @@ async function getPattern(rootPath: string) {
 	const includeExtensions = selectedExtensions.map(ext => `**/*.${ext}`).join(',');
 	// 让用户选择需要排除的目录
 	const excludeDirs = await selectExcludeDirs(rootPath, skipDirectories);
+	// 让用户选择需要排除的根目录文件
+	const excludeFiles = await selectedRootPathFiles(rootPath);
 	// 创建 glob 模式
 	const includePattern = new vscode.RelativePattern(rootPath, `{${includeExtensions}}`);
-	const excludePattern = new vscode.RelativePattern(rootPath, `**/{${excludeDirs.join(',')},${stringSkipDirectories.join(',')},.*}/**`);
+	const excludePattern = new vscode.RelativePattern(rootPath, `{${excludeFiles?.join(',')},**/${excludeDirs.join(',')},${stringSkipDirectories.join(',')},.*/**}`);
 	return { includePattern, excludePattern };
 }
 
