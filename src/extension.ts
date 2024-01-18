@@ -9,7 +9,6 @@ export function activate(context: vscode.ExtensionContext) {
 		// 获取当前工作区的根目录
 		const rootPath = await utils.getRootPath();
 		if (!rootPath) { return; }
-		vscode.window.showInformationMessage(rootPath);
 		// 获取需要提取的文件
 		const filesToExtract = await findFile(rootPath);
 		if (!filesToExtract) { return; }

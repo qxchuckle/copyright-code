@@ -10,13 +10,11 @@ export async function getRootPath() {
     vscode.window.showErrorMessage('没有打开的工作区');
     return false;
   }
-
   if (workspaceFolders.length > 1) {
     const folderNames = workspaceFolders.map(folder => folder.name);
     const selectedFolder = await vscode.window.showQuickPick(folderNames, {
       placeHolder: '选择当前工作区其中一个根文件夹'
     });
-
     if (selectedFolder) {
       const selectedWorkspaceFolder = workspaceFolders.find(folder => folder.name === selectedFolder);
       if (selectedWorkspaceFolder) {
@@ -26,10 +24,8 @@ export async function getRootPath() {
     }
     return false;
   }
-
   return vscode.Uri.joinPath(workspaceFolders[0].uri, '').fsPath;
 }
-
 
 // 删除注释和空行
 export function deleteCommentsAndBlankLines(content: string) {
