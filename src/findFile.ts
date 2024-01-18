@@ -28,6 +28,7 @@ async function selectExcludeDirs(rootPath: string, skipItems: (string | RegExp)[
 // 用户选择匹配规则并获取Pattern
 async function getPattern(rootPath: string) {
 	const skipItems = ['node_modules', /^\./];
+	const stringSkipItems = skipItems.filter(item => typeof item === 'string');
 	// 让用户选择需要提取的文件后缀名
 	const selectedExtensions = await selectFileExtensions(rootPath, skipItems);
 	if (!selectedExtensions || selectedExtensions.length === 0) {
@@ -40,7 +41,7 @@ async function getPattern(rootPath: string) {
 	const excludeDirs = await selectExcludeDirs(rootPath, skipItems);
 	// 创建 glob 模式
 	const includePattern = new vscode.RelativePattern(rootPath, `{${includeExtensions}}`);
-	const excludePattern = new vscode.RelativePattern(rootPath, `**/{${excludeDirs.join(',')},${skipItems.join(',')},.*}/**`);
+	const excludePattern = new vscode.RelativePattern(rootPath, `**/{${excludeDirs.join(',')},${stringSkipItems.join(',')},.*}/**`);
 	return { includePattern, excludePattern };
 }
 
