@@ -3,6 +3,11 @@
   "displayName": "copyright-code",
   "description": "项目代码快速提取至txt,可用于软著等",
   "version": "0.0.1",
+  "publisher": "qcqx",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qxchuckle/copyright-code.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -26,7 +31,9 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "pnpm vsce package --no-dependencies",
+    "publish": "pnpm vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/vscode": "^1.85.0",
