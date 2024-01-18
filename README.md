@@ -1,71 +1,19 @@
-# copyright-code README
+# 简介
+这是一个VSCode插件，用于快速提取**去除了注释和空行**的项目代码，并输出到一个txt文件中。
 
-This is the README for your extension "copyright-code". After writing up a brief description, we recommend including the following sections.
+是的，它最大的作用就是申请软著。
 
-## Features
+## 使用方法
+使用它也很简单，就一个命令：`Extract Code`，你可以在命令面板中搜索到它。
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+然后你可以在弹出的面板中选择想要提取的文件后缀、需要排除的文件夹。
 
-For example if there is an image subfolder under your extension project workspace:
+最后，它会在你的项目根目录下生成一个`extractedCode.txt`文件，里面就是提取好的**无注释、无空行、连续的**代码。
 
-\!\[feature X\]\(images/feature-x.png\)
+## 额外的东西
+噢，对了，如果你的工作区中有多个根文件夹，最开始还会让你选择其中一个进行后续操作。
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+> 祝软著申请顺利，当然这多半是一两个月后的消息了。
 
-## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
 
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
