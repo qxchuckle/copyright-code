@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import * as utils from './utils';
 
 // 选择需要提取的文件的后缀名
-async function selectFileExtensions(rootPath: string) {
+async function selectFileExtensions(rootPath: string, skipItems: (string | RegExp)[] = []) {
 	// 获取项目中所有文件的后缀列表
-	const allFileExtensions = await utils.getAllFileExtensions(rootPath);
+	const allFileExtensions = await utils.getAllFileExtensions(rootPath, skipItems);
 	// 让用户选择需要提取的文件后缀名
 	const selectedExtensions = await vscode.window.showQuickPick(allFileExtensions, {
 		canPickMany: true,
@@ -14,9 +14,9 @@ async function selectFileExtensions(rootPath: string) {
 }
 
 // 选择需要排除的目录
-async function selectExcludeDirs(rootPath: string) {
+async function selectExcludeDirs(rootPath: string, skipItems: (string | RegExp)[] = []) {
 	// 获取并排序目录列表
-	const allDirectories = await utils.getDirectoriesSortedByDepth(rootPath);
+	const allDirectories = await utils.getDirectoriesSortedByDepth(rootPath, skipItems);
 	// 让用户选择需要排除的目录
 	const selectedDirs = await vscode.window.showQuickPick(allDirectories, {
 		canPickMany: true,
@@ -27,8 +27,9 @@ async function selectExcludeDirs(rootPath: string) {
 
 // 用户选择匹配规则并获取Pattern
 async function getPattern(rootPath: string) {
+	const skipItems = ['node_modules', /^\./];
 	// 让用户选择需要提取的文件后缀名
-	const selectedExtensions = await selectFileExtensions(rootPath);
+	const selectedExtensions = await selectFileExtensions(rootPath, skipItems);
 	if (!selectedExtensions || selectedExtensions.length === 0) {
 		vscode.window.showErrorMessage('没有选择任何后缀');
 		return false;
@@ -36,10 +37,10 @@ async function getPattern(rootPath: string) {
 	// 将用户选择的后缀转换为 glob 模式的字符串
 	const includeExtensions = selectedExtensions.map(ext => `**/*.${ext}`).join(',');
 	// 让用户选择需要排除的目录
-	const excludeDirs = await selectExcludeDirs(rootPath);
+	const excludeDirs = await selectExcludeDirs(rootPath, skipItems);
 	// 创建 glob 模式
 	const includePattern = new vscode.RelativePattern(rootPath, `{${includeExtensions}}`);
-	const excludePattern = new vscode.RelativePattern(rootPath, `**/{${excludeDirs.join(',')}}/**`);
+	const excludePattern = new vscode.RelativePattern(rootPath, `**/{${excludeDirs.join(',')},${skipItems.join(',')},.*}/**`);
 	return { includePattern, excludePattern };
 }
 

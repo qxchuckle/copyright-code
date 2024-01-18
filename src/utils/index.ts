@@ -61,13 +61,17 @@ export async function writeDataFromFileArray(
 }
 
 // 获取项目中所有文件的后缀列表
-export async function getAllFileExtensions(rootPath: string): Promise<string[]> {
+export async function getAllFileExtensions(rootPath: string, skipItems: (string | RegExp)[] = []): Promise<string[]> {
   const allFileExtensions: string[] = [];
   const files = await vscode.workspace.findFiles('**/*');
   files.forEach((file) => {
-    const ext = path.extname(file.fsPath);
+    const filePath = file.fsPath;
+    if (shouldSkipDirectory(rootPath, filePath, skipItems)) {
+      return;
+    }
+    const ext = path.extname(filePath);
     if (ext) {
-      const fileExt = ext.slice(1); // remove the leading dot
+      const fileExt = ext.slice(1);
       if (!allFileExtensions.includes(fileExt)) {
         allFileExtensions.push(fileExt);
       }
@@ -76,18 +80,42 @@ export async function getAllFileExtensions(rootPath: string): Promise<string[]> 
   return allFileExtensions;
 }
 
+// 是否是需要跳过的目录
+function shouldSkipDirectory(rootPath: string, filePath: string, skipItems: (string | RegExp)[] = []): boolean {
+  const relativePath = path.relative(rootPath, filePath);
+  const parts = relativePath.split(path.sep);
+  for (const part of parts) {
+    if (shouldSkipItem(part, skipItems)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // 获取按深度排序的目录列表
-export async function getDirectoriesSortedByDepth(rootPath: string): Promise<string[]> {
+export async function getDirectoriesSortedByDepth(rootPath: string, skipItems: (string | RegExp)[] = []): Promise<string[]> {
   const directories: string[] = [];
   const fileSystemEntries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(rootPath));
-
   for (const [name, type] of fileSystemEntries) {
-    if (type === vscode.FileType.Directory) {
+    if (type === vscode.FileType.Directory && !shouldSkipItem(name, skipItems)) {
       directories.push(name);
-      const subdirectories = await getDirectoriesSortedByDepth(path.join(rootPath, name));
+      const subdirectories = await getDirectoriesSortedByDepth(path.join(rootPath, name), skipItems);
       directories.push(...subdirectories.map(subdir => path.join(name, subdir)));
     }
   }
-
   return directories;
+}
+
+// 是否应该跳过该项
+function shouldSkipItem(item: string, skipItems: (string | RegExp)[]): boolean {
+  for (const skipItem of skipItems) {
+    if (skipItem instanceof RegExp) {
+      if (skipItem.test(item)) {
+        return true;
+      }
+    } else if (typeof skipItem === 'string' && item === skipItem) {
+      return true;
+    }
+  }
+  return false;
 }
