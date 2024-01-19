@@ -16,9 +16,9 @@ async function selectFileExtensions(rootPath: string, skipDirectories: (string |
 }
 
 // 选择需要排除的目录
-async function selectExcludeDirs(rootPath: string, skipDirectories: (string | RegExp)[] = []) {
+async function selectExcludeDirs(rootPath: string, skipDirectories: (string | RegExp)[] = [], fileExtensions: string[]) {
 	// 获取并排序目录列表
-	const allDirectories = await utils.getDirectoriesSortedByDepth(rootPath, skipDirectories);
+	const allDirectories = await utils.getDirectoriesSortedByDepth(rootPath, skipDirectories, fileExtensions);
 	// 让用户选择需要排除的目录
 	const selectedDirs = await vscode.window.showQuickPick(allDirectories, {
 		canPickMany: true,
@@ -29,9 +29,9 @@ async function selectExcludeDirs(rootPath: string, skipDirectories: (string | Re
 }
 
 // 选择需要排除的根目录文件
-async function selectedRootPathFiles(rootPath: string): Promise<string[] | undefined> {
+async function selectedRootPathFiles(rootPath: string, fileExtensions: string[]): Promise<string[] | undefined> {
 	// 使用VSCode API读取根目录下的所有文件
-	const files = await vscode.workspace.findFiles(new vscode.RelativePattern(rootPath, '*'));
+	const files = await vscode.workspace.findFiles(new vscode.RelativePattern(rootPath, `*.{${fileExtensions.join(',')}}}`));
 	// 提取文件名
 	const fileNames = files.map(file => path.basename(file.path));
 	// 让用户选择需要的文件
@@ -56,9 +56,9 @@ async function getPattern(rootPath: string) {
 	// 将用户选择的后缀转换为 glob 模式的字符串
 	const includeExtensions = selectedExtensions.map(ext => `**/*.${ext}`).join(',');
 	// 让用户选择需要排除的目录
-	const excludeDirs = await selectExcludeDirs(rootPath, skipDirectories);
+	const excludeDirs = await selectExcludeDirs(rootPath, skipDirectories, selectedExtensions);
 	// 让用户选择需要排除的根目录文件
-	const excludeFiles = await selectedRootPathFiles(rootPath);
+	const excludeFiles = await selectedRootPathFiles(rootPath, selectedExtensions);
 	// 创建 glob 模式
 	const includePattern = new vscode.RelativePattern(rootPath, `{${includeExtensions}}`);
 	const excludePattern = new vscode.RelativePattern(rootPath, `{${excludeFiles?.join(',')},**/${excludeDirs.join(',')},${stringSkipDirectories.join(',')},.*/**}`);

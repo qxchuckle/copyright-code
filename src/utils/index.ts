@@ -2,6 +2,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { isText, isBinary } from 'istextorbinary';
 
 // 获取当前工作区的根目录
 export async function getRootPath() {
@@ -62,60 +63,80 @@ export async function writeDataFromFileArray(
 
 // 获取项目中所有文件的后缀列表
 export async function getAllFileExtensions(rootPath: string, skipDirectories: (string | RegExp)[] = []): Promise<string[]> {
-  const allFileExtensions: string[] = [];
+  const allFileExtensions = new Set<string>();
   const files = await vscode.workspace.findFiles('**/*');
-  files.forEach((file) => {
-    const filePath = file.fsPath;
-    if (shouldSkipDirectory(rootPath, filePath, skipDirectories)) {
-      return;
-    }
-    const ext = path.extname(filePath);
-    if (ext) {
-      const fileExt = ext.slice(1);
-      if (!allFileExtensions.includes(fileExt)) {
-        allFileExtensions.push(fileExt);
+  await Promise.all(
+    files.map(async (file) => {
+      const filePath = file.fsPath;
+      // 如果是二进制文件，跳过，如图片、视频等
+      if (isBinary(filePath)) { return; }
+      if (!shouldSkipDirectory(rootPath, filePath, skipDirectories)) {
+        const ext = path.extname(filePath);
+        if (ext) {
+          const fileExt = ext.slice(1);
+          if (!allFileExtensions.has(fileExt)) {
+            allFileExtensions.add(fileExt);
+          }
+        }
       }
-    }
-  });
-  return allFileExtensions;
+    })
+  );
+  return Array.from(allFileExtensions);
 }
 
 // 是否是需要跳过的目录
 function shouldSkipDirectory(rootPath: string, filePath: string, skipDirectories: (string | RegExp)[] = []): boolean {
   const relativePath = path.relative(rootPath, filePath);
   const parts = relativePath.split(path.sep);
-  for (const part of parts) {
-    if (shouldSkipItem(part, skipDirectories)) {
-      return true;
-    }
-  }
-  return false;
+  return parts.some((part) => shouldSkipItem(part, skipDirectories));
 }
 
 // 获取按深度排序的目录列表
-export async function getDirectoriesSortedByDepth(rootPath: string, skipDirectories: (string | RegExp)[] = []): Promise<string[]> {
+export async function getDirectoriesSortedByDepth(
+  rootPath: string,
+  skipDirectories: (string | RegExp)[],
+  fileExtensions: string[]
+): Promise<string[]> {
   const directories: string[] = [];
   const fileSystemEntries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(rootPath));
-  for (const [name, type] of fileSystemEntries) {
-    if (type === vscode.FileType.Directory && !shouldSkipItem(name, skipDirectories)) {
-      directories.push(name);
-      const subdirectories = await getDirectoriesSortedByDepth(path.join(rootPath, name), skipDirectories);
-      directories.push(...subdirectories.map(subdir => path.join(name, subdir)));
-    }
-  }
+  await Promise.all(
+    fileSystemEntries.map(async ([name, type]) => {
+      if (type === vscode.FileType.Directory && !shouldSkipItem(name, skipDirectories)) {
+        const subdirectoryPath = path.join(rootPath, name);
+        const hasMatchingFiles = await directoryHasMatchingFiles(subdirectoryPath, fileExtensions);
+        if (hasMatchingFiles) {
+          directories.push(name);
+          const subdirectories = await getDirectoriesSortedByDepth(subdirectoryPath, skipDirectories, fileExtensions);
+          directories.push(...subdirectories.map((subdir) => path.join(name, subdir)));
+        }
+      }
+    })
+  );
   return directories;
+}
+
+// 目录中是否有匹配的后缀的文件
+async function directoryHasMatchingFiles(directoryPath: string, fileExtensions: string[]): Promise<boolean> {
+  const fileSystemEntries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(directoryPath));
+  const promises = fileSystemEntries.map(async ([name, type]) => {
+    if (type === vscode.FileType.File) {
+      const extension = path.extname(name).slice(1);
+      return fileExtensions.includes(extension);
+    }
+    return false;
+  });
+  const results = await Promise.all(promises);
+  return results.some(result => result);
 }
 
 // 是否应该跳过该项
 function shouldSkipItem(item: string, skipDirectories: (string | RegExp)[]): boolean {
-  for (const skipItem of skipDirectories) {
+  return skipDirectories.some(skipItem => {
     if (skipItem instanceof RegExp) {
-      if (skipItem.test(item)) {
-        return true;
-      }
-    } else if (typeof skipItem === 'string' && item === skipItem) {
-      return true;
+      return skipItem.test(item);
+    } else {
+      return typeof skipItem === 'string' && item === skipItem;
     }
-  }
-  return false;
+  });
 }
+

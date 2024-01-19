@@ -30,6 +30,9 @@ async function extractAndWriteData(rootPath: string, filesToExtract: vscode.Uri[
 	const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'];
 	// 创建可写流
 	const outputStream = fs.createWriteStream(outputFilePath);
+	outputStream.on('finish', () => {
+		vscode.window.showInformationMessage(`提取的项目代码已保存至: ${outputFilePath}`);
+	});
 	// 写入数据
 	await utils.writeDataFromFileArray(outputStream, filesToExtract, 0, async (file) => {
 		// 打开文档
@@ -37,8 +40,5 @@ async function extractAndWriteData(rootPath: string, filesToExtract: vscode.Uri[
 		if (excludeFiles.includes(path.basename(doc.fileName))) { return ''; }
 		// 删除注释和空行
 		return utils.deleteCommentsAndBlankLines(doc.getText());
-	});
-	outputStream.on('finish', () => {
-		vscode.window.showInformationMessage(`提取的项目代码已保存至: ${outputFilePath}`);
 	});
 }
