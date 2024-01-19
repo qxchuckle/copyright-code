@@ -2,7 +2,7 @@
   "name": "copyright-code",
   "displayName": "软著代码生成助手(copyright-code)",
   "description": "项目代码快速提取至txt,可用于软著等",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "qcqx",
   "repository": {
     "type": "git",
