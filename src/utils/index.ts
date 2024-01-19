@@ -106,9 +106,9 @@ export async function getDirectoriesSortedByDepth(
         const hasMatchingFiles = await directoryHasMatchingFiles(subdirectoryPath, fileExtensions);
         if (hasMatchingFiles) {
           directories.push(name);
-          const subdirectories = await getDirectoriesSortedByDepth(subdirectoryPath, skipDirectories, fileExtensions);
-          directories.push(...subdirectories.map((subdir) => path.join(name, subdir)));
         }
+        const subdirectories = await getDirectoriesSortedByDepth(subdirectoryPath, skipDirectories, fileExtensions);
+        directories.push(...subdirectories.map((subdir) => path.join(name, subdir)));
       }
     })
   );
