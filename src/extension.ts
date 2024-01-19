@@ -27,14 +27,18 @@ async function extractCode() {
 	// 获取需要提取的文件
 	const filesToExtract = await findFile(rootPath);
 	if (!filesToExtract) { return; }
+	// 输出文件名
+	const outPutFileName = `extractedCode_${new Date().getTime()}.txt`;
 	// 提取并写入数据
-	await extractAndWriteData(rootPath, filesToExtract);
+	await extractAndWriteData(rootPath, filesToExtract, outPutFileName);
 }
 
 // 提取并写入数据
-async function extractAndWriteData(rootPath: string, filesToExtract: vscode.Uri[]) {
-	// 输出的文件名
-	const outPutFileName = 'extractedCode.txt';
+async function extractAndWriteData(
+	rootPath: string,
+	filesToExtract: vscode.Uri[],
+	outPutFileName: string = 'extractedCode.txt'
+) {
 	const outputFilePath = path.join(rootPath, outPutFileName);
 	// 内置的需要排除的文件，即使你不选择，它也会被排除
 	const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'];
