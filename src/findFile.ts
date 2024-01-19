@@ -29,9 +29,11 @@ async function selectExcludeDirs(rootPath: string, skipDirectories: (string | Re
 }
 
 // 选择需要排除的根目录文件
-async function selectedRootPathFiles(rootPath: string, fileExtensions: string[]): Promise<string[] | undefined> {
-	// 使用VSCode API读取根目录下的所有文件
-	const files = await vscode.workspace.findFiles(new vscode.RelativePattern(rootPath, `*.{${fileExtensions.join(',')}}}`));
+async function selectedRootPathFiles(rootPath: string, fileExtensions: string[], builtInExcludeFiles: string[]): Promise<string[] | undefined> {
+	const includePattern = new vscode.RelativePattern(rootPath, `*.{${fileExtensions.join(',')}}}`);
+	const excludePattern = new vscode.RelativePattern(rootPath, `{${builtInExcludeFiles.map(item => `**/${item}`).join(',')}}`);
+	// 读取根目录下的所有文件
+	const files = await vscode.workspace.findFiles(includePattern, excludePattern);
 	// 提取文件名
 	const fileNames = files.map(file => path.basename(file.path));
 	// 让用户选择需要的文件
@@ -46,7 +48,7 @@ async function selectedRootPathFiles(rootPath: string, fileExtensions: string[])
 // 用户选择匹配规则并获取Pattern
 async function getPattern(rootPath: string) {
 	const skipDirectories = ['node_modules', /^\./];
-	const stringSkipDirectories = skipDirectories.filter(item => typeof item === 'string');
+	const stringSkipDirectories = skipDirectories.filter(item => typeof item === 'string').map(item => `**/${item}/**`).join(',');
 	// 让用户选择需要提取的文件后缀名
 	const selectedExtensions = await selectFileExtensions(rootPath, skipDirectories);
 	if (!selectedExtensions || selectedExtensions.length === 0) {
@@ -57,11 +59,17 @@ async function getPattern(rootPath: string) {
 	const includeExtensions = selectedExtensions.map(ext => `**/*.${ext}`).join(',');
 	// 让用户选择需要排除的目录
 	const excludeDirs = await selectExcludeDirs(rootPath, skipDirectories, selectedExtensions);
+	// 内置的需要排除的文件，即使你不选择，它也会被排除
+	const builtInExcludeFiles = ['extractedCode.txt', 'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'];
 	// 让用户选择需要排除的根目录文件
-	const excludeFiles = await selectedRootPathFiles(rootPath, selectedExtensions);
+	const excludeFiles = await selectedRootPathFiles(rootPath, selectedExtensions, builtInExcludeFiles);
+	// 将需要排除的文件转换为 glob 模式的字符串
+	const stringExcludeFiles = builtInExcludeFiles.concat(excludeFiles || []).map(item => `**/${item}`).join(',');
 	// 创建 glob 模式
 	const includePattern = new vscode.RelativePattern(rootPath, `{${includeExtensions}}`);
-	const excludePattern = new vscode.RelativePattern(rootPath, `{${excludeFiles?.join(',')},**/${excludeDirs.join(',')},${stringSkipDirectories.join(',')},.*/**}`);
+	const excludePattern = new vscode.RelativePattern(rootPath,
+		`{${stringExcludeFiles},${excludeDirs.join(',')},${stringSkipDirectories},**/.*/**}`
+	);
 	return { includePattern, excludePattern };
 }
 

@@ -40,8 +40,7 @@ async function extractAndWriteData(
 	outPutFileName: string = 'extractedCode.txt'
 ) {
 	const outputFilePath = path.join(rootPath, outPutFileName);
-	// 内置的需要排除的文件，即使你不选择，它也会被排除
-	const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'];
+	// const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'];
 	// 创建可写流
 	const outputStream = fs.createWriteStream(outputFilePath);
 	outputStream.on('finish', () => {
@@ -51,7 +50,7 @@ async function extractAndWriteData(
 	await utils.writeDataFromFileArray(outputStream, filesToExtract, 0, async (file) => {
 		// 打开文档
 		const doc = await vscode.workspace.openTextDocument(file);
-		if (excludeFiles.includes(path.basename(doc.fileName))) { return ''; }
+		// if (excludeFiles.includes(path.basename(doc.fileName))) { return ''; }
 		// 删除注释和空行
 		return utils.deleteCommentsAndBlankLines(doc.getText());
 	});
