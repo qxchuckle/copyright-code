@@ -1,13 +1,13 @@
 <div align="center">
 <!-- Logo -->
-<img width="100px" src="https://bu.dusays.com/2024/01/19/65a9ef6a40f0a.png">
+<img width="120px" src="https://bu.dusays.com/2024/01/19/65a9ef6a40f0a.png">
 <!-- 名称 -->
 <h1>Copyright-Code</h1>
 </div>
 
 这是一个VSCode插件，用于快速提取**去除了注释和空行**的项目代码，并输出到一个txt文件中。
 
-是的，它最大的作用就是申请软著。
+是的，它最大的作用就是申请软著，~~也可以用来看有效代码行数~~
 
 前往插件市场下载：[https://marketplace.visualstudio.com/items?itemName=qcqx.copyright-code](https://marketplace.visualstudio.com/items?itemName=qcqx.copyright-code)
 
