@@ -1,3 +1,9 @@
+<div align="center">
+<!-- Logo -->
+<img width="100px" src="https://bu.dusays.com/2024/01/19/65a9ef6a40f0a.png">
+<!-- 名称 -->
+<h1>Copyright-Code</h1>
+
 # 简介
 这是一个VSCode插件，用于快速提取**去除了注释和空行**的项目代码，并输出到一个txt文件中。
 
@@ -27,5 +33,8 @@ const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json', 'pnpm
 
 > 祝软著申请顺利，当然这多半是一两个月后的消息了。
 
+## 贡献
+
+图标设计：[张洪Heo](https://github.com/zhheo)
 
 
