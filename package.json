@@ -2,7 +2,7 @@
   "name": "copyright-code",
   "displayName": "copyright-code",
   "description": "项目代码快速提取至txt,可用于软著等",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "qcqx",
   "repository": {
     "type": "git",
