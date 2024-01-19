@@ -28,7 +28,7 @@ async function extractCode() {
 	const filesToExtract = await findFile(rootPath);
 	if (!filesToExtract) { return; }
 	// 输出文件名
-	const outPutFileName = `extractedCode_${new Date().getTime()}.txt`;
+	const outPutFileName = `extractedCode.txt`;
 	// 提取并写入数据
 	await extractAndWriteData(rootPath, filesToExtract, outPutFileName);
 }
