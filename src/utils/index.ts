@@ -2,7 +2,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { isText, isBinary } from 'istextorbinary';
+import { isBinary } from 'istextorbinary';
 
 // 获取当前工作区的根目录
 export async function getRootPath() {
