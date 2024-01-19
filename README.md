@@ -3,6 +3,7 @@
 <img width="100px" src="https://bu.dusays.com/2024/01/19/65a9ef6a40f0a.png">
 <!-- 名称 -->
 <h1>Copyright-Code</h1>
+</div>
 
 # 简介
 这是一个VSCode插件，用于快速提取**去除了注释和空行**的项目代码，并输出到一个txt文件中。
