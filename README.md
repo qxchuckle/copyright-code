@@ -1,6 +1,6 @@
 <div align="center">
 <!-- Logo -->
-<img width="120px" src="https://bu.dusays.com/2024/01/19/65a9ef6a40f0a.png">
+<img width="100px" src="https://bu.dusays.com/2024/01/19/65a9ef6a40f0a.png">
 <!-- 名称 -->
 <h1>Copyright-Code</h1>
 </div>
