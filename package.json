@@ -16,7 +16,7 @@
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
-  "icon": "./images/logo2.png",
+  "icon": "images/logo2.png",
   "contributes": {
     "commands": [
       {
