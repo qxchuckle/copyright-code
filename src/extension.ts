@@ -33,6 +33,9 @@ async function extractCode() {
 	await extractAndWriteData(rootPath, filesToExtract, outPutFileName);
 }
 
+// 创建输出通道
+const outputChannel = vscode.window.createOutputChannel('copyright-code');
+
 // 提取并写入数据
 async function extractAndWriteData(
 	rootPath: string,
@@ -44,14 +47,26 @@ async function extractAndWriteData(
 	// 创建可写流
 	const outputStream = fs.createWriteStream(outputFilePath);
 	outputStream.on('finish', () => {
-		vscode.window.showInformationMessage(`提取的项目代码已保存至: ${outputFilePath}`);
+		const message = `提取的项目代码已保存至: ${outputFilePath}`;
+    vscode.window.showInformationMessage(message);
+    outputChannel.appendLine(`[${getCurrentTimestamp()}] ${message}`);
 	});
 	// 写入数据
 	await utils.writeDataFromFileArray(outputStream, filesToExtract, 0, async (file) => {
 		// 打开文档
 		const doc = await vscode.workspace.openTextDocument(file);
+		// 输出文件类型到输出通道
+    outputChannel.appendLine(`[${getCurrentTimestamp()}] 提取 ${doc.fileName} type: ${doc.languageId}`);
 		// if (excludeFiles.includes(path.basename(doc.fileName))) { return ''; }
 		// 删除注释和空行
-		return utils.deleteCommentsAndBlankLines(doc.getText());
+		return utils.deleteCommentsAndBlankLines(doc.getText(), doc.languageId);
 	});
+	// 显示输出通道
+	// outputChannel.show();
+}
+
+// 获取当前时间的字符串
+function getCurrentTimestamp(): string {
+  const now = new Date();
+  return now.toISOString();
 }

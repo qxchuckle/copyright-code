@@ -1,38 +1,100 @@
-import * as os from 'os';
-import * as fs from 'fs';
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { isBinary } from 'istextorbinary';
+import * as os from "os";
+import * as fs from "fs";
+import * as vscode from "vscode";
+import * as path from "path";
+import { isBinary } from "istextorbinary";
 
 // 获取当前工作区的根目录
 export async function getRootPath() {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders) {
-    vscode.window.showErrorMessage('没有打开的工作区');
+    vscode.window.showErrorMessage("没有打开的工作区");
     return false;
   }
   if (workspaceFolders.length > 1) {
-    const folderNames = workspaceFolders.map(folder => folder.name);
+    const folderNames = workspaceFolders.map((folder) => folder.name);
     const selectedFolder = await vscode.window.showQuickPick(folderNames, {
-      placeHolder: '选择当前工作区其中一个根文件夹'
+      placeHolder: "选择当前工作区其中一个根文件夹",
     });
     if (selectedFolder) {
-      const selectedWorkspaceFolder = workspaceFolders.find(folder => folder.name === selectedFolder);
+      const selectedWorkspaceFolder = workspaceFolders.find(
+        (folder) => folder.name === selectedFolder
+      );
       if (selectedWorkspaceFolder) {
-        const selectedPath = vscode.Uri.joinPath(selectedWorkspaceFolder.uri, '').fsPath;
+        const selectedPath = vscode.Uri.joinPath(
+          selectedWorkspaceFolder.uri,
+          ""
+        ).fsPath;
         return selectedPath;
       }
     }
     return false;
   }
-  return vscode.Uri.joinPath(workspaceFolders[0].uri, '').fsPath;
+  return vscode.Uri.joinPath(workspaceFolders[0].uri, "").fsPath;
 }
 
 // 删除注释和空行
-export function deleteCommentsAndBlankLines(content: string) {
-  return content.replace(/\/\/.*|\/\*[\s\S]*?\*\/|^\s*$/gm, '')
-    .replace(/(\n[\s\t]*\r*\n)/g, '\n')
-    .replace(/^[\n\r\n\t]*|[\n\r\n\t]*$/g, '');
+export function deleteCommentsAndBlankLines(
+  content: string,
+  type: vscode.TextDocument["languageId"]
+): string {
+  if (type === "plaintext" || type === "json") {
+    return content
+      .replace(/\n\s*\n/g, "\n") // 删除多余的空行
+      .trim(); // 删除开头和结尾的空行;
+  }
+  if (!content) {
+    return "";
+  }
+
+  let commentRegex: RegExp;
+
+  switch (type) {
+    case "javascript":
+    case "typescript":
+    case "java":
+    case "c":
+    case "cpp":
+      commentRegex =
+        /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|\/\/.*|\/\*[\s\S]*?\*\//gm;
+      break;
+    case "python":
+      commentRegex = /#.*|'''[\s\S]*?'''|"""[\s\S]*?"""/gm;
+      break;
+    case "html":
+    case "xml":
+      commentRegex = /<!--[\s\S]*?-->/gm;
+      break;
+    case "css":
+      commentRegex = /\/\*[\s\S]*?\*\//gm;
+      break;
+    case "shellscript":
+    case "perl":
+    case "ruby":
+      commentRegex =
+        /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|#.*|=begin[\s\S]*?=end/gm;
+      break;
+    default:
+      commentRegex =
+        /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|\/\/.*|\/\*[\s\S]*?\*\//gm; // 默认处理方式
+  }
+
+  switch (type) {
+    case "python":
+    case "html":
+    case "xml":
+    case "css":
+      return content
+        .replace(commentRegex, "")
+        .replace(/\n\s*\n/g, "\n") // 删除多余的空行
+        .trim(); // 删除开头和结尾的空行
+    default:
+  }
+
+  return content
+    .replace(commentRegex, (match, p1) => (p1 ? p1 : ""))
+    .replace(/\n\s*\n/g, "\n") // 删除多余的空行
+    .trim(); // 删除开头和结尾的空行
 }
 
 // 递归写入数据的函数
@@ -48,8 +110,13 @@ export async function writeDataFromFileArray(
     // 尝试写入数据
     if (currentData && !writableStream.write(currentData + os.EOL)) {
       // 在 drain 事件触发后继续写入下一条数据
-      writableStream.once('drain', () => {
-        writeDataFromFileArray(writableStream, fileArray, index + 1, getContent);
+      writableStream.once("drain", () => {
+        writeDataFromFileArray(
+          writableStream,
+          fileArray,
+          index + 1,
+          getContent
+        );
       });
     } else {
       // 数据已经完全写入，递归调用写入下一条数据
@@ -62,14 +129,19 @@ export async function writeDataFromFileArray(
 }
 
 // 获取项目中所有文件的后缀列表
-export async function getAllFileExtensions(rootPath: string, skipDirectories: (string | RegExp)[] = []): Promise<string[]> {
+export async function getAllFileExtensions(
+  rootPath: string,
+  skipDirectories: (string | RegExp)[] = []
+): Promise<string[]> {
   const allFileExtensions = new Set<string>();
-  const files = await vscode.workspace.findFiles('**/*');
+  const files = await vscode.workspace.findFiles("**/*");
   await Promise.all(
     files.map(async (file) => {
       const filePath = file.fsPath;
       // 如果是二进制文件，跳过，如图片、视频等
-      if (isBinary(filePath)) { return; }
+      if (isBinary(filePath)) {
+        return;
+      }
       if (!shouldSkipDirectory(rootPath, filePath, skipDirectories)) {
         const ext = path.extname(filePath);
         if (ext) {
@@ -85,7 +157,11 @@ export async function getAllFileExtensions(rootPath: string, skipDirectories: (s
 }
 
 // 是否是需要跳过的目录
-function shouldSkipDirectory(rootPath: string, filePath: string, skipDirectories: (string | RegExp)[] = []): boolean {
+function shouldSkipDirectory(
+  rootPath: string,
+  filePath: string,
+  skipDirectories: (string | RegExp)[] = []
+): boolean {
   const relativePath = path.relative(rootPath, filePath);
   const parts = relativePath.split(path.sep);
   return parts.some((part) => shouldSkipItem(part, skipDirectories));
@@ -98,17 +174,31 @@ export async function getDirectoriesSortedByDepth(
   fileExtensions: string[]
 ): Promise<string[]> {
   const directories: string[] = [];
-  const fileSystemEntries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(rootPath));
+  const fileSystemEntries = await vscode.workspace.fs.readDirectory(
+    vscode.Uri.file(rootPath)
+  );
   await Promise.all(
     fileSystemEntries.map(async ([name, type]) => {
-      if (type === vscode.FileType.Directory && !shouldSkipItem(name, skipDirectories)) {
+      if (
+        type === vscode.FileType.Directory &&
+        !shouldSkipItem(name, skipDirectories)
+      ) {
         const subdirectoryPath = path.join(rootPath, name);
-        const hasMatchingFiles = await directoryHasMatchingFiles(subdirectoryPath, fileExtensions);
+        const hasMatchingFiles = await directoryHasMatchingFiles(
+          subdirectoryPath,
+          fileExtensions
+        );
         if (hasMatchingFiles) {
           directories.push(name);
         }
-        const subdirectories = await getDirectoriesSortedByDepth(subdirectoryPath, skipDirectories, fileExtensions);
-        directories.push(...subdirectories.map((subdir) => path.join(name, subdir)));
+        const subdirectories = await getDirectoriesSortedByDepth(
+          subdirectoryPath,
+          skipDirectories,
+          fileExtensions
+        );
+        directories.push(
+          ...subdirectories.map((subdir) => path.join(name, subdir))
+        );
       }
     })
   );
@@ -116,8 +206,13 @@ export async function getDirectoriesSortedByDepth(
 }
 
 // 目录中是否有匹配的后缀的文件
-async function directoryHasMatchingFiles(directoryPath: string, fileExtensions: string[]): Promise<boolean> {
-  const fileSystemEntries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(directoryPath));
+async function directoryHasMatchingFiles(
+  directoryPath: string,
+  fileExtensions: string[]
+): Promise<boolean> {
+  const fileSystemEntries = await vscode.workspace.fs.readDirectory(
+    vscode.Uri.file(directoryPath)
+  );
   const promises = fileSystemEntries.map(async ([name, type]) => {
     if (type === vscode.FileType.File) {
       const extension = path.extname(name).slice(1);
@@ -126,17 +221,19 @@ async function directoryHasMatchingFiles(directoryPath: string, fileExtensions: 
     return false;
   });
   const results = await Promise.all(promises);
-  return results.some(result => result);
+  return results.some((result) => result);
 }
 
 // 是否应该跳过该项
-function shouldSkipItem(item: string, skipDirectories: (string | RegExp)[]): boolean {
-  return skipDirectories.some(skipItem => {
+function shouldSkipItem(
+  item: string,
+  skipDirectories: (string | RegExp)[]
+): boolean {
+  return skipDirectories.some((skipItem) => {
     if (skipItem instanceof RegExp) {
       return skipItem.test(item);
     } else {
-      return typeof skipItem === 'string' && item === skipItem;
+      return typeof skipItem === "string" && item === skipItem;
     }
   });
 }
-
