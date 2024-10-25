@@ -47,14 +47,23 @@ async function selectedRootPathFiles(rootPath: string, fileExtensions: string[],
 
 // 用户选择匹配规则并获取Pattern
 async function getPattern(rootPath: string) {
-	const skipDirectories = ['node_modules', /^\./];
-	const stringSkipDirectories = skipDirectories.filter(item => typeof item === 'string').map(item => `**/${item}/**`).join(',');
+	// 从VS插件设置中获取要排除的文件及文件夹
+	const config = vscode.workspace.getConfiguration('copyrightCode');
+	const skipDirectories: string[] = config.get('skipDirectories', []);
+
+	// 过滤并转换为 glob 模式
+	const stringSkipDirectories = skipDirectories
+			.filter((item: string) => typeof item === 'string')
+			.map(item => `**/${item}/**`)
+			.join(',');
+
 	// 让用户选择需要提取的文件后缀名
 	const selectedExtensions = await selectFileExtensions(rootPath, skipDirectories);
 	if (!selectedExtensions || selectedExtensions.length === 0) {
 		vscode.window.showErrorMessage('没有选择任何后缀');
 		return false;
 	}
+
 	// 将用户选择的后缀转换为 glob 模式的字符串
 	const includeExtensions = selectedExtensions.map(ext => `**/*.${ext}`).join(',');
 	// 让用户选择需要排除的目录
