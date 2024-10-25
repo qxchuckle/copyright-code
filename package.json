@@ -2,7 +2,7 @@
   "name": "copyright-code",
   "displayName": "软著代码生成助手(copyright-code)",
   "description": "项目代码快速提取至txt,可用于软著等",
-  "version": "0.5.0",
+  "version": "1.1.0",
   "publisher": "qcqx",
   "repository": {
     "type": "git",
@@ -29,7 +29,21 @@
         "title": "软著代码生成",
         "category": "Copyright-Code"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "软著排除项设置",
+      "properties": {
+        "copyrightCode.skipDirectories": {
+          "type": "array",
+          "default": ["node_modules", "^\\.", "uni_modules"],
+          "items": {
+            "type": "string"
+          },
+          "description": "需要排除的文件夹和文件"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

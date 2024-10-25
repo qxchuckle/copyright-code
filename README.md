@@ -32,14 +32,17 @@
 
 通过对文件后缀的选择、排除的文件夹和根目录文件的选择，已经可以非常灵活地提取代码了。**全选后再反选**，就是选择需要的文件夹和根目录文件。
 
-一些文件和文件夹会默认排除，不会出现在选择面板中。如：`package.json`、`node_modules`和`.`开头的文件夹
+一些文件和文件夹会默认排除，不会出现在选择面板中。如：`package.json`、`node_modules`、`uni_modules`和`.`开头的文件夹
 
 ```js 内置默认排除
 // 内置的需要排除的文件，不会出现在选择面板中
 const excludeFiles = [outPutFileName, 'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'];
 // 内置的需要排除的文件夹，不会出现在选择面板中
-const skipDirectories = ['node_modules', /^\./];
+const skipDirectories = ['node_modules', /^\./, 'uni_modules'];
 ```
+
+当然，你也可以直接在插件的设置项中添加需要排除的文件夹
+![alt text](image.png)
 
 > 祝软著申请顺利，当然这多半是一两个月后的消息了。
 
