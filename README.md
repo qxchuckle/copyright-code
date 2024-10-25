@@ -42,7 +42,7 @@ const skipDirectories = ['node_modules', /^\./, 'uni_modules'];
 ```
 
 当然，你也可以直接在插件的设置项中添加需要排除的文件夹
-![alt text](./images/skip.png)
+![](https://github.com/qxchuckle/copyright-code/blob/main/images/skip.png)
 
 > 祝软著申请顺利，当然这多半是一两个月后的消息了。
 
